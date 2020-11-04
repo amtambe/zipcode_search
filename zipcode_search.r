@@ -1,22 +1,22 @@
-#Basic R script to convert stata to R
-#just specify file names and locations
+#Basic R script to find which zip codes in the United States are most similar to 
+# the one specified. Make sure to call the zip code when you call the function
+# e.g. "Rscript similar_zip.r 94305" - it will print a list of the 15 most similar
+# zips. Similarity is based on a slight variant of the chi-squared distance. 
+# Also edit the working directory. 
 
-zip_data = "zipcode_data copy.csv"
+zip_data = "zipcode_data.csv"
 args<-commandArgs(TRUE)
-
 library(haven)
-#set this
-setwd("insert your wd here!")
-
+setwd("Insert yours here")
 
 zips_df <- read.csv(zip_data)
+
 #read in zip; clean zips starting with 0
 #not handling misspecified arguments for now
 zip <- args[1]
 while (identical(substr(zip, 0, 1), "0")) {
     zip <- substr(zip, 2, nchar(zip))
 }
-
 
 "Compute chi-square distance between each zip code and the specified one. 
 
@@ -29,7 +29,7 @@ demographic j (e.g. Doctorate degree), zip codes x and y, and total population s
 we compute Xj = (N / c_j) (x_j - y_j)^2, where c_j is the count of demographic j across 
 all zip codes. We return the square root of the sum of sum Xj for each demographic 
 category j."
-get_nearest_zips <- function(zip, df) {
+get_nearest_zips <- function(zip, df, n) {
     #get data affiliated with this zip code
     zip_demogs <- df[match(zip, df$Zipcode), ]
     zip_demogs <- sapply(zip_demogs, as.numeric)
@@ -52,9 +52,9 @@ get_nearest_zips <- function(zip, df) {
     #then, sort by the distance
     sorted <- df[order(df$total_dists), 'Zipcode']
     #exclude 1st because that will be the input zipcode with distance 0
-    return(sorted[2:length(sorted)])
+    return(sorted[2:n+1])
 }
 
-nearest_zips <- get_nearest_zips(zip, zips_df)
+nearest_zips <- get_nearest_zips(zip, zips_df, 15)
 print("Nearest zips in ascending order. ")
 print(nearest_zips)
